@@ -7,8 +7,8 @@ async def accept_friend_request():
     targetAccountID = request.form['targetAccountID']
     cursor.execute(f'DELETE FROM friend_requests WHERE fromAccId = {targetAccountID} AND toAccId = {accId}') #  WHERE toAccId = {accId}
     cursor.execute(f'DELETE FROM friend_requests WHERE fromAccId = {accId} AND toAccId = {targetAccountID}') #  WHERE toAccId = {accId}
-    cursor.execute(f'INSERT INTO friends(user1, user2) VALUES ({accId}, {targetAccountID})')
-    cursor.execute(f'INSERT INTO friends(user1, user2) VALUES ({targetAccountID}, {accId})')
+    cursor.execute(f'INSERT INTO friends(user1, user2, isNew) VALUES ({accId}, {targetAccountID}, 1)')
+    cursor.execute(f'INSERT INTO friends(user1, user2, isNew) VALUES ({targetAccountID}, {accId}, 1)')
     conn.commit()
     #fetched_requests = cursor.fetchall()
     return "1", 200

@@ -21,6 +21,11 @@ async def update_user_score():
 	color_2 = request.form['color2']
 	icon_type = request.form['iconType']
 
+	# cursor.execute(f"SELECT stars FROM accounts WHERE accId = '{accId}'")
+	# starsOld = cursor.fetchone()[0]
+
+	# if stars > 500: return accId, 200
+
 	cursor.execute(f"UPDATE accounts SET stars = {stars}, demons = {demons}, diamonds = {diamonds}, coins = {coins}, userCoins = {userCoins}, icon_cube = {icon_cube}, icon_ship = {icon_ship}, icon_ball = {icon_ball}, icon_bird = {icon_bird}, icon_dart = {icon_dart}, icon_robot = {icon_robot}, icon_glow = {icon_glow}, icon_spider = {icon_spider}, icon_explosion = {icon_explosion}, icon_type = {icon_type}, color_1 = {color_1}, color_2 = {color_2} WHERE accId = {accId}")
 	conn.commit()
 

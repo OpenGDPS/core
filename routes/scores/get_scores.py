@@ -12,8 +12,9 @@ async def get_scores():
 	accID = request.form['accountID']
 	accountOut = ""
 	if request.form['type'] == "relative":
-		cursor.execute(f"SELECT * FROM accounts")
+		cursor.execute(f"SELECT * FROM accounts ORDER BY stars DESC")
 		accounts = cursor.fetchall()
+		rank = 0
 		for account in accounts:
 			username = account[0]
 			userID = account[4]
@@ -26,15 +27,19 @@ async def get_scores():
 			icon_cube = account[15]
 			#icon_type = account[24]
 			icon_type = 0
+			rank = rank + 1
 			color_1 = account[25]
 			color_2 = account[26]
-			accountOut = accountOut + f"1:{username}:2:{userID}:13:{coins}:17:{userCoins}:6:{userID}:9:{icon_cube}:10:{color_1}:11:{color_2}:14:{icon_type}:15:0:16:{userID}:3:{stars}:8:{creator_points}:4:{demons}:7:{userID}:46:{diamonds}|"
+			if stars < 1: pass
+			else:
+				accountOut = accountOut + f"1:{username}:2:{userID}:13:{coins}:17:{userCoins}:6:{rank}:9:{icon_cube}:10:{color_1}:11:{color_2}:14:{icon_type}:15:0:16:{userID}:3:{stars}:8:{creator_points}:4:{demons}:7:{userID}:46:{diamonds}|"
 		
 		return accountOut, 200
 	
 	if request.form['type'] == "creators":
-		cursor.execute(f"SELECT * FROM accounts")
+		cursor.execute(f"SELECT * FROM accounts ORDER BY creator_points DESC")
 		accounts = cursor.fetchall()
+		rank = 0
 		for account in accounts:
 			username = account[0]
 			userID = account[4]
@@ -47,18 +52,20 @@ async def get_scores():
 			icon_cube = account[15]
 			#icon_type = account[24]
 			icon_type = 0
+			rank = rank + 1
 			color_1 = account[25]
 			color_2 = account[26]
 			#print(f"Creator points: {creator_points}")
 			if creator_points == 0: pass
 			else:
-				accountOut = accountOut + f"1:{username}:2:{userID}:13:{coins}:17:{userCoins}:6:{userID}:9:{icon_cube}:10:{color_1}:11:{color_2}:14:{icon_type}:15:0:16:{userID}:3:{stars}:8:{creator_points}:4:{demons}:7:{userID}:46:{diamonds}|"
+				accountOut = accountOut + f"1:{username}:2:{userID}:13:{coins}:17:{userCoins}:6:{rank}:9:{icon_cube}:10:{color_1}:11:{color_2}:14:{icon_type}:15:0:16:{userID}:3:{stars}:8:{creator_points}:4:{demons}:7:{userID}:46:{diamonds}|"
 		
 		return accountOut, 200
 	
 	if request.form['type'] == "top":
-		cursor.execute(f"SELECT * FROM accounts LIMIT 100")
+		cursor.execute(f"SELECT * FROM accounts ORDER BY stars DESC LIMIT 100")
 		accounts = cursor.fetchall()
+		rank = 0
 		for account in accounts:
 			username = account[0]
 			userID = account[4]
@@ -71,9 +78,10 @@ async def get_scores():
 			icon_cube = account[15]
 			#icon_type = account[24]
 			icon_type = 0
+			rank = rank + 1
 			color_1 = account[25]
 			color_2 = account[26]
-			accountOut = accountOut + f"1:{username}:2:{userID}:13:{coins}:17:{userCoins}:6:{userID}:9:{icon_cube}:10:{color_1}:11:{color_2}:14:{icon_type}:15:0:16:{userID}:3:{stars}:8:{creator_points}:4:{demons}:7:{userID}:46:{diamonds}|"
+			accountOut = accountOut + f"1:{username}:2:{userID}:13:{coins}:17:{userCoins}:6:{rank}:9:{icon_cube}:10:{color_1}:11:{color_2}:14:{icon_type}:15:0:16:{userID}:3:{stars}:8:{creator_points}:4:{demons}:7:{userID}:46:{diamonds}|"
 		
 		return accountOut, 200
 
@@ -83,8 +91,9 @@ async def get_scores():
 		for friend in friends:
 			#print(friend[1])
 			friendAccID = friend[1]
-			cursor.execute(f'SELECT * FROM accounts WHERE accId = {friendAccID}')
+			cursor.execute(f'SELECT * FROM accounts WHERE accId = {friendAccID} ORDER BY stars DESC')
 			acc = cursor.fetchall()
+			rank = 0
 			for account in acc:
 				username = account[0]
 				userID = account[4]
@@ -97,9 +106,10 @@ async def get_scores():
 				icon_cube = account[15]
 				#icon_type = account[24]
 				icon_type = 0
+				rank = rank + 1
 				color_1 = account[25]
 				color_2 = account[26]
-				accountOut = accountOut + f"1:{username}:2:{userID}:13:{coins}:17:{userCoins}:6:{userID}:9:{icon_cube}:10:{color_1}:11:{color_2}:14:{icon_type}:15:0:16:{userID}:3:{stars}:8:{creator_points}:4:{demons}:7:{userID}:46:{diamonds}|"
+				accountOut = accountOut + f"1:{username}:2:{userID}:13:{coins}:17:{userCoins}:6:{rank}:9:{icon_cube}:10:{color_1}:11:{color_2}:14:{icon_type}:15:0:16:{userID}:3:{stars}:8:{creator_points}:4:{demons}:7:{userID}:46:{diamonds}|"
 		#print(accountOut)
 		return accountOut, 200
 	else:

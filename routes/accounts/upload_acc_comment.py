@@ -1,4 +1,5 @@
 from __main__ import app, cursor, request, conn
+import cryptx
 
 import datetime
 import random
@@ -24,6 +25,7 @@ async def upload_account_comment():
 	#except Exception as e: return f'temp_0_{e}'
 
 	date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-	cursor.execute(f"INSERT INTO posts (accId, postText, commentId, likes, isSpam, uploadDate) VALUES ({accountId}, '{comment}', {random.randint(0, 2147483647)}, 0, 0, '{date}')")
+	commentId = random.randint(0, 2147483647)
+	cursor.execute(f"INSERT INTO posts (accId, postText, commentId, likes, isSpam, uploadDate) VALUES ({accountId}, '{comment}', {commentId}, 0, 0, '{date}')")
 	conn.commit()
 	return "1", 200

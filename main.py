@@ -10,6 +10,8 @@ import hashes
 import formats
 import cryptx
 
+import asyncio
+
 dragoncoregd_logo = '''
 ██████╗ ██████╗  █████╗  ██████╗  ██████╗ ███╗   ██╗ ██████╗ ██████╗ ██████╗ ███████╗ ██████╗ ██████╗	 ██████╗ ██╗   ██╗
 ██╔══██╗██╔══██╗██╔══██╗██╔════╝ ██╔═══██╗████╗  ██║██╔════╝██╔═══██╗██╔══██╗██╔════╝██╔════╝ ██╔══██╗   ██╔══██╗╚██╗ ██╔╝
@@ -27,6 +29,7 @@ app = Flask(__name__)
 conn = sqlite3.connect('database.db', check_same_thread=False)
 cursor = conn.cursor()
 
+print('[main] Loading routes please wait...')
 import routes.frontend.accManagament
 import routes.request_user_access
 
@@ -62,6 +65,7 @@ import routes.users.update_user_score
 
 import routes.users.block_user
 import routes.users.unblock_user
+print('[main] Loaded')
 
 @app.errorhandler(404)
 async def err(e):
@@ -147,11 +151,10 @@ async def update_level_desc():
 @app.route('/database/getGJDailyLevel.php', methods=['GET', 'POST'])
 async def gjfskngfdhgoif():
 	cursor.execute(f"SELECT setting FROM config WHERE setting = 'dailyLevelId'")
-	dailyLevelId = cursor.fetchone()[0]
+	#dailyLevelId = cursor.fetchone()[0]
+	dailyLevelId = 1 + 100001
 	timex = 30
 	return f'{dailyLevelId}|{timex}', 200
-
-import asyncio
 
 @app.route('/database/getGJGauntlets21.php', methods=['GET', 'POST'])
 async def get_gauntlets():
@@ -165,14 +168,15 @@ async def get_gauntlets():
 @app.route('/database/getGJMapPacks21.php', methods=['GET', 'POST'])
 async def get_mappacks():
 	id = "1"
-	stars = 2
-	coins = 3
+	stars = "2"
+	coins = "3"
 	difficulty = 2
 	str1 = f"1:1:2:DragoncoreGD v2!:3:5,8,4,3,2:4:{stars}:5:{coins}:6:{difficulty}:7:245, 66, 66:8:255,255,255|"
 	return f"{str1}#1:0:10#{hashes.hash_mappack(id, stars, coins)}"
 
 @app.route('/database/getGJLevels21.php', methods=['GET', 'POST'])
 async def get_levels():
+	print(request.form)
 	levelStr = ""
 
 	lvlID = 1
@@ -202,11 +206,64 @@ async def get_levels():
 	songId = 533164
 	levelStr = levelStr + f"1:{lvlID}:2:{lvlName}:5:{lvlVersion}:6:{userID}:8:10:9:{starDifficulty}:10:{downloads}:12:{audioTrack}:13:21:14:{likes}:17:{starDemon}:43:{starDemonDiff}:25:{starAuto}:18:{starStars}:19:{starFeatured}:42:{starEpic}:45:{objects}:3:{levelDesc}:15:{levelLength}:30:{original}:31:{twoPlayer}:37:{coins}:38:{starCoins}:39:{requestedStars}:46:1:47:2:40:{isLDM}:35:{songId}|"
 	userStr = "1:DragonFire:1|"
-	songStr = "1~|~1~|~2~|~StereoMadness~|~3~|~1~~|~4~|~DragonFireCommunity~|~5~|~10~|~6~|~~|~10~|~https://github.com/matcool/pygdps/routes/levels/get_levels.mp3~|~7~|~~|~8~|~1|"
+	songStr = "1~|~1~|~2~|~StereoMadness~|~3~|~1~~|~4~|~DragonFireCommunity~|~5~|~10~|~6~|~~|~10~|~github.com/matcool/pygdps/routes/levels/get_levels.mp3~|~7~|~~|~8~|~1|"
 	totalLvls = 1
 	offset = 0
 	hash = hashes.hash_levels(lvlID, starStars)
 	return f'{levelStr}#{userStr}#{songStr}#{totalLvls}:{offset}#{hash}', 200
+
+# 1.7 feature, yes
+# from https://github.com/Cvolton/GMDprivateServer/pull/945
+# @app.route('/database/submitGJUserInfo.php', methods=['GET', 'POST'])
+# async def sumbit_info():
+#     return 'not implemented', 501
+
+# @app.route('/database/restoreGJItems.php', methods=['GET', 'POST'])
+# async def restore_items():
+#     return 'not implemented', 501
+
+# @app.route('/database/downloadGJLevel.php', methods=['GET', 'POST'])
+# @app.route('/database/downloadGJLevel19.php', methods=['GET', 'POST'])
+# @app.route('/database/downloadGJLevel20.php', methods=['GET', 'POST'])
+# @app.route('/database/downloadGJLevel21.php', methods=['GET', 'POST'])
+# @app.route('/database/downloadGJLevel22.php', methods=['GET', 'POST'])
+# async def download_level():
+# 	print('DOWNLOAD LEVEL: Experimental feature')
+# 	uploadDate = "09.01.2023"
+# 	settingsString = "1"
+# 	userString = "1,8,4,1,10,1,0,100001"
+# 	extraString = "0_75_0_0_0_0_0_0_0_0_0_0_57_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0"
+# 	levelString = "H4sIAAAAAAAAC6WT3W3DMAyEF2ID_kmy0afMkAE4QFbo8LXEPNRAeTGQF9HSZ57uCPv5sI0knENDtIWFthYiWTRLHnp8SfQQZo4REtLmsgXHFvIjsSRYr0nI5xL7vxLznWy4JKIx-ysvl2UalLk82F7I0PMuRjxLy9KzOB1rPo88eZVtlofta6drTYEF7r7WpMJZhPhbSEhJ9kZGo5Eee2YnOxRu7UQdUuEKb4ykFy2lF62lGbpetHNBFdpinInhQDpuXnivfHWYqcNMHdqy97S816Bng67swiwP6dOpKjJ7_EOIbu9pZTZpNYak1RiSlkHV0aeegetmhTcrdK0osTGyZQPaSlzZSlrZsg4v7vDXT2nsukzsOJPDTA4z-fuLS9OCqLdxm1x1lhMZWpFXz6ha_oBf3dmmzhcIAAA="
+# 	lvlStr = f"1:1:2:xd lol:3:{levelString}:5:1:6:469475:8:10:9:2:10:150:11:1:12:0:13:21:14:10:17:10:43:2:25:0:18:8:19:1:42:1:45:40:15:10:30:1:31:0:28:{uploadDate}:29:{uploadDate}:35:1:36:{extraString}:37:0:38:0:39:8:46:120:47:0:48:{settingsString}:40:0:27:0"
+# 	responseOutput = f"{lvlStr}#{hashes.hash_levels('1', '8')}#{hashes.hash_solo2(lvlStr)}#{userString}"
+# 	return responseOutput, 200
+
+@app.route('/database/getGJUsers20.php', methods=['GET', 'POST'])
+async def get_users():
+	accountOut = ""
+	userToSearch = request.form['str']
+	cursor.execute(f"SELECT * FROM accounts WHERE userName = '{userToSearch}' OR accId = '{userToSearch}' ORDER BY stars DESC")
+	accounts = cursor.fetchall()
+	rank = 0
+	for account in accounts:
+		username = account[0]
+		userID = account[4]
+		stars = account[5]
+		coins = account[6]
+		userCoins = account[7]
+		diamonds = account[8]
+		demons = account[9]
+		creator_points = account[10]
+		icon_cube = account[15]
+		#icon_type = account[24]
+		icon_type = 0
+		rank = rank + 1
+		color_1 = account[25]
+		color_2 = account[26]
+		if stars < 1: pass
+		else:
+			accountOut = accountOut + f"1:{username}:2:{userID}:13:{coins}:17:{userCoins}:6:{rank}:9:{icon_cube}:10:{color_1}:11:{color_2}:14:{icon_type}:15:0:16:{userID}:3:{stars}:8:{creator_points}:4:{demons}|"
+	return f'{accountOut}#0:0:10', 200
 
 #@app.route('/database/getGJCommentHistory.php', methods=['GET', 'POST'])
 #async def comment_history():

@@ -99,9 +99,9 @@ async def get_user_info():
 			show_comment_history = cursor.fetchone()[0]
 
 		#rank = 1
-		rank = accountId
+		#rank = accountId
 
-		cursor.execute(f"SELECT * FROM friends WHERE user1 = '{accountId}'")
+		cursor.execute(f"SELECT * FROM friends WHERE user1 = '{accountId}' AND isNew = 1")
 		friends_list = len(cursor.fetchall())
 		cursor.execute(f"SELECT * FROM friend_requests WHERE toAccId = '{accountId}' AND isNew = 1")
 		new_friend_requests = len(cursor.fetchall())
@@ -118,5 +118,24 @@ async def get_user_info():
 		if len(friendStateCheckOUTCOMING) != 0: friendState = 4
 		if len(friendStateCheckIN_FRIENDS) != 0: friendState = 1
 		else: friendState = 0
+
+		if stars != 0:
+			cursor.execute(f"SELECT * FROM accounts ORDER BY stars DESC")
+			accounts = cursor.fetchall()
+			rank = 0
+			for accountx in accounts:
+				#rank = rank + 1
+				print(accountx, rank)
+				print(accountx[4], accountId)
+				if str(accountx[4]) == str(accountId):
+					print(rank)
+					#rank = rank + 1
+					rank = rank + 1
+					break
+					#rank = rank
+				else:
+					rank = rank + 1
+		else:
+			rank = 0
 
 		return f"1:{account[0]}:2:{accountId}:13:{coins}:17:{userCoins}:10:{color_1}:11:{color_2}:3:{stars}:46:{diamonds}:4:{demons}:8:{creator_points}:18:{can_message}:19:{can_friend}:50:{show_comment_history}:20:{youtube_url}:21:{icon_cube}:22:{icon_ship}:23:{icon_ball}:24:{icon_bird}:25:{icon_dart}:26:{icon_robot}:28:{icon_glow}:43:{icon_spider}:47:{icon_explosion}:30:{rank}:16:{accountId}:31:{friendState}:44:{twitter_url}:45:{twitch_url}:29:1:49:{modBadge}:32:1:35:1:37:1:38:{messages}:39:{new_friend_requests}:40:{friends_list}", 200

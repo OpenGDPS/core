@@ -15,6 +15,6 @@ async def account_login():
 		return '-11'
 	else:
 		print(f"[Login] Account found! {userName}")
-		# example response (type tuple): ('DragonFire', '00000p', 'dragonfirecommunity@gmail.com', 'Wmfv3899gc9', 1)
 		accId = account[4]
+		# example response (type tuple): ('DragonFire', '00000p', 'dragonfirecommunity@gmail.com', 'Wmfv3899gc9', 1)
 		return f'{accId},{accId}'
