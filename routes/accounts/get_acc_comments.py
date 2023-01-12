@@ -4,7 +4,7 @@ import timeago
 
 @app.route('/database/getGJAccountComments20.php', methods=['GET', 'POST'])
 async def get_account_comments():
-	offset = request.form['page']
+	#page = int(request.form['page'])
 	accountId = request.form['accountID']
 	now = datetime.datetime.now()
 
@@ -25,4 +25,4 @@ async def get_account_comments():
 				uploadDate = timeago.format(post[5], now).replace(' ago', '')
 				comments = f"2~{post[1]}~3~{post[0]}~4~{post[3]}~5~0~7~0~9~{uploadDate}~6~{post[2]}|" + comments
 		#print(comments)
-		return comments + "#0:0:10", 200
+		return comments + f"#0:0:10", 200

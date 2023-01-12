@@ -1,5 +1,6 @@
 import flask
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
+import os
 import sqlite3
 import random
 import datetime
@@ -9,6 +10,8 @@ import util
 import hashes
 import formats
 import cryptx
+#import requests
+from typing import Dict
 
 import asyncio
 
@@ -28,6 +31,7 @@ print("Loading...")
 app = Flask(__name__)
 conn = sqlite3.connect('database.db', check_same_thread=False)
 cursor = conn.cursor()
+charInvalid = ['~', '`', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '=', '`', '!', '"', ';', ':', '?', '-', '+']
 
 print('[main] Loading routes please wait...')
 import routes.frontend.accManagament
@@ -51,8 +55,6 @@ import routes.relationships.get_friend_requests
 import routes.relationships.delete_friend_request
 import routes.relationships.upload_friend_request
 import routes.relationships.read_friend_request
-
-import routes.users.get_user_list
 import routes.relationships.remove_friend
 
 import routes.messages.delete_message
@@ -60,52 +62,92 @@ import routes.messages.upload_message
 import routes.messages.get_messages
 import routes.messages.download_message
 
+import routes.users.get_user_list
+import routes.users.get_users
 import routes.users.get_user_info
 import routes.users.update_user_score
-
 import routes.users.block_user
 import routes.users.unblock_user
 print('[main] Loaded')
+SERVER_URL = 'http://127.0.0.1'
+SERVER_URL_NO_HTTP = '127.0.0.1'
+
+def gd_dict_str(d: Dict[int, str], separator: str = ":") -> str:
+    """Converts the dict `d` into a Geometry Dash-styled HTTP response.
+    Args:
+        d (dict): A dictionary of keys to convert. Should be in the format
+            key int: str`.
+        separator (str): The character to separate all elements of the dict.
+    Returns:
+        Returns a string from the dict in the format `1:aaa:2:b`
+    """
+
+    # Combine them all and send off.
+    return separator.join([str(arg[i]) for arg in d.items() for i in (0, 1)])
 
 @app.errorhandler(404)
 async def err(e):
 	#print(f'Unhandled request! {request.path} {json.dumps(request.values.to_dict())}')
 	return '1', 404
 
+@app.route('/dl/songs/<path:filename>', methods=['GET', 'POST'])
+async def download_songs(filename):
+    return send_from_directory(
+        os.path.abspath('.\\dl\\songs'),
+        filename,
+        as_attachment=False,
+        mimetype=None
+    )
+
+# def convert_bytes(size):
+#     """ Convert bytes to KB, or MB or GB"""
+#     for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
+#         if size < 1024.0:
+#             return "%3.1f %s" % (size)
+#         size /= 1024.0
+
+# get song info
+@app.route('/database/getGJSongInfo.php', methods=['GET', 'POST'])
+async def get_song_info():
+	songID = request.form['songID']
+	# response = requests.post('http://www.boomlings.com/database/getGJSongInfo.php', data={
+	# 	'songID': songID,
+	# 	'secret': 'Wmfd2893gb7'
+	# })
+	cursor.execute(f"SELECT * FROM songs WHERE songID = {songID}")
+	result = cursor.fetchone()
+
+	try:
+		songName = result[1]
+		authorID = result[2]
+		authorName = result[3]
+		downloadURL = f'{SERVER_URL}/dl/songs/{songID}.mp3'
+		size = os.path.getsize(f'.\\dl\\songs\\{songID}.mp3')
+			
+		return f'1~|~{songID}~|~2~|~{songName}~|~3~|~{authorID}~|~4~|~{authorName}~|~5~|~{size}~|~6~|~~|~10~|~{downloadURL}~|~7~|~~|~8~|~0', 200
+	except:
+		return '-1', 200
+
+@app.route('/database/getGJTopArtists.php', methods=['GET', 'POST'])
+async def get_top_artists():
+	cursor.execute(f"SELECT * FROM songs")
+	result = cursor.fetchall()
+	strArtists = ""
+	try:
+		for music in result:
+			songID = music[0]
+			songName = music[1]
+			authorName = music[3]
+			outName = f'{songName} by {authorName} ! {songID}'
+			strArtists = strArtists + f'4:{outName}:7:../redirect?q=http%3A%2F%2F{SERVER_URL_NO_HTTP}%2Fdl%2Fsongs%2F{songID}.mp3|'
+		print(strArtists)
+		return f'{strArtists}#0:0:20', 200
+	except:
+		return '-1', 200
+
 # upload level
 @app.route('/database/uploadGJLevel21.php', methods=['GET', 'POST'])
 async def upload_level():
-	#	 "gameVersion"	INTEGER,
-	# "binaryVersion"	INTEGER,
-	# "gdw"	INTEGER,
-	# "accountID"	INTEGER,
-	# "gjp"	TEXT,
-	# "userName"	TEXT,
-	# "levelID"	INTEGER,
-	# "levelName"	TEXT,
-	# "levelDesc"	TEXT,
-	# "levelVersion"	INTEGER,
-	# "levelLength"	INTEGER,
-	# "audioTrack"	INTEGER,
-	# "auto"	INTEGER,
-	# "password"	INTEGER,
-	# "original"	INTEGER,
-	# "twoPlayer"	INTEGER,
-	# "songID"	INTEGER,
-	# "objects"	INTEGER,
-	# "coins"	INTEGER,
-	# "uestedStars"	INTEGER,
-	# "unlisted"	INTEGER,
-	# "wt"	INTEGER,
-	# "wt2"	INTEGER,
-	# "ldm"	INTEGER,
-	# "extraString"	TEXT,
-	# "seed"	TEXT,
-	# "seed2"	TEXT,
-	# "levelString"	TEXT,
-	# "levelInfo"	TEXT,
-	# "secret"	TEXT
-	# add this all to the database
 	gameVersion = request.form['gameVersion']
 	binaryVersion = request.form['binaryVersion']
 	gdw = request.form['gdw']
@@ -113,7 +155,10 @@ async def upload_level():
 	gjp = request.form['gjp']
 	userName = request.form['userName']
 	levelID = request.form['levelID']
-	levelName = request.form['levelName']
+	for char in charInvalid:
+		levelName = request.form['levelName'].replace(char, '')
+	if len(levelName) > 20:
+		return '-1', 200
 	levelDesc = request.form['levelDesc']
 	levelVersion = request.form['levelVersion']
 	levelLength = request.form['levelLength']
@@ -178,7 +223,6 @@ async def get_mappacks():
 async def get_levels():
 	print(request.form)
 	levelStr = ""
-
 	lvlID = 1
 	lvlName = "Hello"
 	lvlVersion = 1
@@ -212,6 +256,58 @@ async def get_levels():
 	hash = hashes.hash_levels(lvlID, starStars)
 	return f'{levelStr}#{userStr}#{songStr}#{totalLvls}:{offset}#{hash}', 200
 
+@app.route('/database/downloadGJLevel.php', methods=['GET', 'POST'])
+@app.route('/database/downloadGJLevel19.php', methods=['GET', 'POST'])
+@app.route('/database/downloadGJLevel20.php', methods=['GET', 'POST'])
+@app.route('/database/downloadGJLevel21.php', methods=['GET', 'POST'])
+@app.route('/database/downloadGJLevel22.php', methods=['GET', 'POST'])
+async def download_level():
+	levelID = request.form['levelID']
+	cursor.execute(f'SELECT * FROM levels WHERE levelID = {levelID}')
+	result = cursor.fetchone()
+
+	# rewrite code:
+	#  - https://github.com/RealistikDash/GDPyS/blob/v3/handlers/levels.py#L260
+	main_resp = gd_dict_str(
+		{
+			1: levelID,
+			2: result[7],
+			3: result[8],
+			4: result[27],
+			5: result[9],
+			6: result[3],
+			8: 10 if result[19] else 0,
+			9: result[19],
+			10: 300,
+			12: 1,
+			13: result[0],
+			14: 100,
+			15: result[10],
+			17: 1 if 0 == 10 else 0,
+			18: 0,
+			19: 0,
+			25: 1 if 0 == 1 else 0,
+			26: 0,
+			27: result[13],
+			28: '12.01.2023',
+			29: 0, # update_ts
+			30: 0, # original
+			31: 1 if 0 else 0,
+			35: 0 if 1 else 0, # level.song.id, level.song
+			36: result[24],
+			37: result[18],
+			38: 1, # TODO: if level.coins_verified else 0
+			39: result[19],
+			40: 1 if result[23] else 0,
+			41: 0, # TODO: DAILY NUMBER.
+			42: 0, # TODO: epic. 1 if level.epic else 0
+			43: level.demon_diff,
+			45: level.objects,
+			46: level.working_time,
+			47: level.working_time,
+        },
+    )
+
 # 1.7 feature, yes
 # from https://github.com/Cvolton/GMDprivateServer/pull/945
 # @app.route('/database/submitGJUserInfo.php', methods=['GET', 'POST'])
@@ -237,33 +333,6 @@ async def get_levels():
 # 	lvlStr = f"1:1:2:xd lol:3:{levelString}:5:1:6:469475:8:10:9:2:10:150:11:1:12:0:13:21:14:10:17:10:43:2:25:0:18:8:19:1:42:1:45:40:15:10:30:1:31:0:28:{uploadDate}:29:{uploadDate}:35:1:36:{extraString}:37:0:38:0:39:8:46:120:47:0:48:{settingsString}:40:0:27:0"
 # 	responseOutput = f"{lvlStr}#{hashes.hash_levels('1', '8')}#{hashes.hash_solo2(lvlStr)}#{userString}"
 # 	return responseOutput, 200
-
-@app.route('/database/getGJUsers20.php', methods=['GET', 'POST'])
-async def get_users():
-	accountOut = ""
-	userToSearch = request.form['str']
-	cursor.execute(f"SELECT * FROM accounts WHERE userName = '{userToSearch}' OR accId = '{userToSearch}' ORDER BY stars DESC")
-	accounts = cursor.fetchall()
-	rank = 0
-	for account in accounts:
-		username = account[0]
-		userID = account[4]
-		stars = account[5]
-		coins = account[6]
-		userCoins = account[7]
-		diamonds = account[8]
-		demons = account[9]
-		creator_points = account[10]
-		icon_cube = account[15]
-		#icon_type = account[24]
-		icon_type = 0
-		rank = rank + 1
-		color_1 = account[25]
-		color_2 = account[26]
-		if stars < 1: pass
-		else:
-			accountOut = accountOut + f"1:{username}:2:{userID}:13:{coins}:17:{userCoins}:6:{rank}:9:{icon_cube}:10:{color_1}:11:{color_2}:14:{icon_type}:15:0:16:{userID}:3:{stars}:8:{creator_points}:4:{demons}|"
-	return f'{accountOut}#0:0:10', 200
 
 #@app.route('/database/getGJCommentHistory.php', methods=['GET', 'POST'])
 #async def comment_history():
