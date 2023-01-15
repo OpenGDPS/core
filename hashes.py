@@ -7,14 +7,17 @@ def hash_rewards(rewards_data: str) -> str:
     """
     return hashlib.sha1(bytes(rewards_data + 'pC26fpYaQCtg', 'utf-8')).hexdigest()
 
-def hash_levels(id, stars) -> str:
+def hash_levels(id, stars, appendSecurity = True) -> str:
     """
     Used in:
         - getGJLevels21
     """
     # '{first digit of level id}{last digit of level id}{stars}{starCoins?? 0 works fine So}'
     data = ''.join(f"{str(id)[0]}{str(id)[-1]}{stars}0")
-    return hashlib.sha1(bytes(data + 'xI25fpAapCQg', 'utf-8')).hexdigest()
+    if appendSecurity == True:
+        return hashlib.sha1(bytes(data + 'xI25fpAapCQg', 'utf-8')).hexdigest()
+    else:
+        return hashlib.sha1(bytes(data, 'utf-8')).hexdigest()
 
 def hash_mappack(id, stars, coins) -> str:
     """
