@@ -8,8 +8,10 @@ async def like_item():
 	if like == "1":
 		cursor.execute(f"UPDATE posts SET likes = likes + 1 WHERE commentId = {itemID}")
 		cursor.execute(f"UPDATE level_comments SET likes = likes + 1 WHERE commentID = {itemID}")
+		cursor.execute(f"UPDATE levels SET likes = likes + 1 WHERE levelID = {itemID}")
 	if like == "0":
 		cursor.execute(f"UPDATE posts SET likes = likes - 1 WHERE commentId = {itemID}")
 		cursor.execute(f"UPDATE level_comments SET likes = likes - 1 WHERE commentID = {itemID}")
+		cursor.execute(f"UPDATE levels SET likes = likes - 1 WHERE levelID = {itemID}")
 	conn.commit()
 	return "1", 200

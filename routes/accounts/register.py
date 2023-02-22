@@ -33,7 +33,7 @@ async def account_register():
 		password = inputForm['password']
 		email = inputForm['email']
 		secret = inputForm['secret']
-		accId = random.randint(1, 1000000)
+		accId = random.randint(5, 1000000)
 		cursor.execute(f"INSERT INTO accounts (userName, password, email, secret, accId, stars, coins, userCoins, diamonds, demons, creator_points, modLevel, canMessage, canFriend, showCommentHistory) VALUES ('{userName}', '{password}', '{email}', '{secret}', {accId}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)")
 		conn.commit()
 		return '1'

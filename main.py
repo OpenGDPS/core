@@ -78,6 +78,11 @@ import routes.misc.get_top_artists
 
 import routes.levels.update_desc
 
+import routes.levels.get_levels
+import routes.levels.get_lvl_comments
+import routes.levels.upload_lvl_comment
+import routes.levels.delete_lvl_comment
+
 import routes.dl
 
 print('[main] Loaded')
@@ -144,7 +149,7 @@ async def upload_level():
 	levelString = request.form['levelString']
 	levelInfo = request.form['levelInfo']
 	secret = request.form['secret']
-	cursor.execute(f"INSERT INTO levels (gameVersion, binaryVersion, gdw, accountID, gjp, userName, levelID, levelName, levelDesc, levelVersion, levelLength, audioTrack, auto, password, original, twoPlayer, songID, objects, coins, requestedStars, unlisted, wt, wt2, ldm, extraString, seed, seed2, levelString, levelInfo, secret, stars, isFeatured, isEpic) VALUES ({gameVersion}, {binaryVersion}, {gdw}, {accountID}, '{gjp}', '{userName}', {levelID}, '{levelName}', '{levelDesc}', {levelVersion}, {levelLength}, {audioTrack}, {auto}, {password}, {original}, {twoPlayer}, {songID}, {objects}, {coins}, {requestedStars}, {unlisted}, {wt}, {wt2}, {ldm}, '{extraString}', '{seed}', '{seed2}', '{levelString}', '{levelInfo}', '{secret}', 0, 0, 0)")
+	cursor.execute(f"INSERT INTO levels (gameVersion, binaryVersion, gdw, accountID, gjp, userName, levelID, levelName, levelDesc, levelVersion, levelLength, audioTrack, auto, password, original, twoPlayer, songID, objects, coins, requestedStars, unlisted, wt, wt2, ldm, extraString, seed, seed2, levelString, levelInfo, secret, stars, isFeatured, isEpic, likes) VALUES ({gameVersion}, {binaryVersion}, {gdw}, {accountID}, '{gjp}', '{userName}', {levelID}, '{levelName}', '{levelDesc}', {levelVersion}, {levelLength}, {audioTrack}, {auto}, {password}, {original}, {twoPlayer}, {songID}, {objects}, {coins}, {requestedStars}, {unlisted}, {wt}, {wt2}, {ldm}, '{extraString}', '{seed}', '{seed2}', '{levelString}', '{levelInfo}', '{secret}', 0, 0, 0, 0)")
 	conn.commit()
 	return levelID, 200
 
@@ -175,108 +180,6 @@ async def get_mappacks():
 	str1 = f"1:1:2:DragoncoreGD v2!:3:5,8,4,3,2:4:{stars}:5:{coins}:6:{difficulty}:7:245, 66, 66:8:255,255,255|"
 	return f"{str1}#1:0:10#{hashes.hash_mappack(id, stars, coins)}"
 
-@app.route('/database/getGJLevels21.php', methods=['GET', 'POST'])
-async def get_levels():
-	print(request.form)
-	filtersString = ''
-
-	filterCoins = request.form['coins']
-	filterFeatured = request.form['featured']
-	filterEpic = request.form['epic']
-	filterTwoPlayer = request.form['twoPlayer']
-
-	try:
-		filterSongID = request.form['song']
-		filtersString += f' AND songID = {filterSongID}'
-	except:
-		pass
-
-	if filterCoins == '1': filtersString += ' AND coins >= 1'
-	if filterFeatured == '1': filtersString += ' AND isFeatured = 1'
-	if filterEpic == '1': filtersString += ' AND isEpic = 1'
-	if filterTwoPlayer == '1': filtersString += ' AND twoPlayer = 1'
-
-	cursor.execute('SELECT * FROM levels WHERE unlisted = 0' + filtersString)
-	resultx = cursor.fetchall()
-	try:
-		result = random.choice(resultx)
-	except:
-		return '-1', 200
-	#print(result)
-	levelStr = ""
-	lvlID = result[6]
-	lvlName = result[7]
-	lvlVersion = result[9]
-	userID = result[3]
-	# 8:10:9
-	# starDifficulty - Difficulty
-	# starStars - Stars
-	if result[30] == 1:
-		starAuto = 1
-	else:
-		starAuto = result[12]
-	starDifficulty = result[30] * 5
-
-	downloads = 1
-	audioTrack = result[11]
-	likes = 1
-	starDemon = 0
-	starDemonDiff = 0
-	starStars = result[30]
-	starFeatured = result[31]
-	starEpic = result[32]
-	objects = result[17]
-	levelDesc = result[8]
-	levelLength = result[10]
-	original = result[14]
-	twoPlayer = result[15]
-	coins = result[18]
-	starCoins = 0
-	requestedStars = result[19]
-	isLDM = result[23]
-	songId = result[16]
-	levelStr = levelStr + f"1:{lvlID}:2:{lvlName}:5:{lvlVersion}:6:{userID}:8:10:9:{starDifficulty}:10:{downloads}:12:{audioTrack}:13:21:14:{likes}:17:{starDemon}:43:{starDemonDiff}:25:{starAuto}:18:{starStars}:19:{starFeatured}:42:{starEpic}:45:{objects}:3:{levelDesc}:15:{levelLength}:30:{original}:31:{twoPlayer}:37:{coins}:38:{starCoins}:39:{requestedStars}:46:1:47:2:40:{isLDM}:35:{songId}|"
-	userStr = "1:DragonFire:1|"
-	songStr = "1~|~1~|~2~|~StereoMadness~|~3~|~1~~|~4~|~DragonFireCommunity~|~5~|~10~|~6~|~~|~10~|~github.com/matcool/pygdps/routes/levels/get_levels.mp3~|~7~|~~|~8~|~1|"
-	totalLvls = len(resultx)
-	offset = 0
-	hash = hashes.hash_levels(lvlID, starStars)
-	# levelStr = ""
-	# lvlID = 1
-	# lvlName = "Hello"
-	# lvlVersion = 1
-	# userID = 1
-	# # 8:10:9
-	# # starDifficulty - Difficulty
-	# # starStars - Stars
-	# starDifficulty = 5
-	# downloads = 301
-	# audioTrack = 1
-	# likes = 1
-	# starDemon = 0
-	# starDemonDiff = 0
-	# starAuto = 0
-	# starStars = 2
-	# starFeatured = 1
-	# starEpic = 1
-	# objects = 30
-	# levelDesc = "VGhpcyBsZXZlbCB3YXMgdXNpbmcgZm9yIGNvcmUgdGVzdGluZy4gUmVwb3J0IGFueSBidWdzIGluIERyYWdvbkZpcmUncyBkbQ=="
-	# levelLength = 30
-	# original = 0
-	# twoPlayer = 0
-	# coins = 0
-	# starCoins = 0
-	# requestedStars = 5
-	# isLDM = 0
-	# songId = 533164
-	# levelStr = levelStr + f"1:{lvlID}:2:{lvlName}:5:{lvlVersion}:6:{userID}:8:10:9:{starDifficulty}:10:{downloads}:12:{audioTrack}:13:21:14:{likes}:17:{starDemon}:43:{starDemonDiff}:25:{starAuto}:18:{starStars}:19:{starFeatured}:42:{starEpic}:45:{objects}:3:{levelDesc}:15:{levelLength}:30:{original}:31:{twoPlayer}:37:{coins}:38:{starCoins}:39:{requestedStars}:46:1:47:2:40:{isLDM}:35:{songId}|"
-	# userStr = "1:DragonFire:1|"
-	# songStr = "1~|~1~|~2~|~StereoMadness~|~3~|~1~~|~4~|~DragonFireCommunity~|~5~|~10~|~6~|~~|~10~|~github.com/matcool/pygdps/routes/levels/get_levels.mp3~|~7~|~~|~8~|~1|"
-	# totalLvls = 1
-	# offset = 0
-	# hash = hashes.hash_levels(lvlID, starStars)
-	return f'{levelStr}#{userStr}#{songStr}#{totalLvls}:{offset}#{hash}', 200
-
 @app.route('/database/suggestGJStars20.php', methods=['GET', 'POST'])
 async def suggest_stars():
 	stars = request.form['stars']
@@ -293,9 +196,10 @@ async def suggest_stars():
 # @app.route('/database/downloadGJLevel21.php', methods=['GET', 'POST'])
 # @app.route('/database/downloadGJLevel22.php', methods=['GET', 'POST'])
 # async def download_level():
-# 	levelID = 1
-# 	#levelID = request.form['levelID'].replace('-', '')
-# 	#print(levelID)
+# 	levelID = request.form['levelID'].replace('-', '')
+# 	print(levelID)
+# 	return '-1', 501
+
 # 	cursor.execute(f'SELECT * FROM levels WHERE levelID = {levelID}')
 # 	result = cursor.fetchone()
 # 	#print(result)
@@ -384,74 +288,63 @@ async def suggest_stars():
 @app.route('/database/downloadGJLevel21.php', methods=['GET', 'POST'])
 @app.route('/database/downloadGJLevel22.php', methods=['GET', 'POST'])
 async def download_level():
+	print(request.form)
+	levelID = request.form['levelID'].replace('-', '')
+	extras = request.form['extras']
+	print(levelID)
 	print('DOWNLOAD LEVEL: Experimental feature')
-	uploadDate = "09.01.2023"
-	settingsString = "1"
-	userString = "1,2,0,1,10,1,0,0"
-	extraString = "0_75_0_0_0_0_0_0_0_0_0_0_57_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0_0"
-	levelString = "H4sIAAAAAAAAC6WT3W3DMAyEF2ID_kmy0afMkAE4QFbo8LXEPNRAeTGQF9HSZ57uCPv5sI0knENDtIWFthYiWTRLHnp8SfQQZo4REtLmsgXHFvIjsSRYr0nI5xL7vxLznWy4JKIx-ysvl2UalLk82F7I0PMuRjxLy9KzOB1rPo88eZVtlofta6drTYEF7r7WpMJZhPhbSEhJ9kZGo5Eee2YnOxRu7UQdUuEKb4ykFy2lF62lGbpetHNBFdpinInhQDpuXnivfHWYqcNMHdqy97S816Bng67swiwP6dOpKjJ7_EOIbu9pZTZpNYak1RiSlkHV0aeegetmhTcrdK0osTGyZQPaSlzZSlrZsg4v7vDXT2nsukzsOJPDTA4z-fuLS9OCqLdxm1x1lhMZWpFXz6ha_oBf3dmmzhcIAAA="
-	lvlStr = f"1:1:2:Hello:3:omg:4:{levelString}:5:1:6:1:8:10:9:2:10:150:11:1:12:0:13:21:14:10:17:10:43:2:25:0:18:8:19:1:42:1:45:30:15:10:30:0:31:0:28:{uploadDate}:29:{uploadDate}:35:533164:36:{extraString}:37:0:38:0:39:5:46:120:47:0:48:{settingsString}:40:0:27:0"
-	responseOutput = f"{lvlStr}#{hashes.hash_levels(1, 2)}#{hashes.hash_solo2(lvlStr)}#{hashes.hash_level(userString)}"
-	print(responseOutput)
-	return responseOutput, 200
+	cursor.execute(f'SELECT * FROM levels WHERE levelID = {levelID}')
+	result = cursor.fetchone()
 
-@app.route('/database/uploadGJComment21.php', methods=['GET', 'POST'])
-async def upload_comment_level():
-	levelID = request.form['levelID']
-	accountID = request.form['accountID']
-	userName = request.form['userName']
-	comment = request.form['comment']
-	date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-	commentID = random.randint(1, 2147483647)
-	cursor.execute(f'INSERT INTO level_comments VALUES({levelID}, {accountID}, "{userName}", "{comment}", 0, 0, "{date}", {commentID})')
-	conn.commit()
-	return '1', 200
-
-@app.route('/database/deleteGJComment20.php', methods=['GET', 'POST'])
-async def delete_comment_level():
-	levelID = request.form['levelID']
-	commentID = request.form['commentID']
-	cursor.execute(f'DELETE FROM level_comments WHERE levelID = {levelID} AND commentID = {commentID}')
-	conn.commit()
-	return '-1', 200
-
-@app.route('/database/getGJComments21.php', methods=['GET', 'POST'])
-async def get_comments_level():
-	#page = int(request.form['page'])
-	levelId = request.form['levelID']
-	now = datetime.datetime.now()
-
-	cursor.execute(f"SELECT * FROM level_comments WHERE levelID = {levelId}")
-	posts = cursor.fetchall()
-	if posts is None:
-		return '-1'
+	levelName = result[7]
+	levelDescription = result[8]
+	levelVersion = result[9]
+	userID = result[3]
+	if result[30] == 1:
+		starAuto = 1
 	else:
-		comments = ""
-		for post in posts:
-			cursor.execute(f"SELECT * FROM level_comments WHERE levelID = {levelId}")
-			comments_in_post = cursor.fetchall()
-			if comments_in_post is None:
-				continue
-			else:
-				accountId = post[1]
-				cursor.execute(f"SELECT icon_cube FROM accounts WHERE accId = '{accountId}'")
-				icon_cube = cursor.fetchone()[0]
-				#print(f'Comment: {post[1]}, User ID: {post[0]}, Likes: {post[3]}, uploadDate: {post[5]}, Post ID: {post[2]}')
-				uploadDate = timeago.format(post[6], now).replace(' ago', '')
-				percentCompleted = 1
+		starAuto = result[12]
+	starDifficulty = result[30] * 5
+	likes = result[33]
+	gameVersion = result[0]
+	downloads = 1
+	songId = result[16]
+	coins = result[18]
+	starCoins = 0
+	requestedStars = result[19]
+	isLDM = result[23]
+	starStars = result[30]
+	wt = result[21]
+	wt2 = result[22]
+	twoPlayer = result[15]
+	original = result[14]
+	levelLength = result[10]
+	objects = result[17]
+	starFeatured = result[31]
+	starEpic = result[32]
+	levelInfo = result[28]
+	starDemon = 0
+	starDemonDiff = 0
 
-				cursor.execute(f"SELECT color_1 FROM accounts WHERE accId = '{accountId}'")
-				color_1 = cursor.fetchone()[0]
+	cursor.execute(f'SELECT userName FROM accounts WHERE accId = {userID}')
+	try:
+		username = cursor.fetchone()[0]
+	except:
+		userID = 2
+		username = "Invalid User"
 
-				cursor.execute(f"SELECT color_2 FROM accounts WHERE accId = '{accountId}'")
-				color_2 = cursor.fetchone()[0]
-
-				commentsAppend = f"~11~0:1~{post[2]}~7~1~9~{icon_cube}~10~{color_1}~11~{color_2}~14~0~15~0~16~{accountId}"
-				comments = f"2~{post[3]}~3~{accountId}~4~{post[4]}~5~0~7~{post[5]}~9~{uploadDate}~6~{post[7]}~10~{percentCompleted}{commentsAppend}|" + comments
-		#print(comments)
-		print(comments)
-		return comments + f"#0:0:10", 200
-	#return f'2~SGVsbG8hIE5ldyBsZXZlbCBzeXN0ZW0gb21n~3~1~4~200~5~0~7~0~9~15.01.2023~6~1~10~53~11~2:1~DragonFire~7~1~9~1~10~3~11~4~14~0~15~0~16~1|#$1:$1:$1'
+	uploadDate = "09-01-2023"
+	settingsString = "1"
+	#userString = f"{userID}:{username}:{userID}"
+	userString = f"{userID},10,0,{levelID},{starCoins},{starFeatured},0,0"
+	extraString = result[24]
+	levelString = result[27]
+	lvlStr = f"1:{levelID}:2:{levelName}:3:{levelDescription}:4:{levelString}:5:{levelVersion}:6:{userID}:8:10:9:{starDifficulty}:10:{downloads}:11:1:12:{songId}:13:{gameVersion}:14:{likes}:17:{starDemon}:43:{starDemonDiff}:25:{starAuto}:18:{starStars}:19:{starFeatured}:42:{starEpic}:45:{objects}:15:{levelLength}:30:{original}:31:{twoPlayer}:28:{uploadDate}:29:{uploadDate}:35:{songId}:36:{extraString}:37:{coins}:38:{starCoins}:39:{requestedStars}:46:{wt}:47:{wt2}:48:{settingsString}:40:{isLDM}:27:0"
+	if extras == '1': lvlStr = lvlStr + f":26:{levelInfo}"
+	responseOutput = f"{lvlStr}#{hashes.hash_level(lvlStr)}#{hashes.hash_solo2(userString)}"
+	print(responseOutput)
+	return f'1:{levelID}:2:Test:3:QSB0ZXN0IGxldmVsIGZvciB0aGUgR0QgRG9jcyE=:4:H4sIAAAAAAAAC6WQwQ3DIAxFF3IlfxsIUU6ZIQP8AbJChy_GPSZqpF7-A4yfDOfhXcCiNMIqnVYrgYQl8rDwBTZCVbkQRI3oVHbiDU6F2jMF_lesl4q4kw2PJMbovxLBQxTpM3-I6q0oHmXjzx7N0240cu5w0UBNtESRkble8uSLHjh8nTubmYJZ2MvMrEITEN0gEJMxlLiMZ28frmj:5:1:6:3935672:8:0:9:0:10:1:12:0:13:21:14:0:17::43:0:25::18:0:19:0:42:0:45:1:15:0:30:55610687:31:0:28:1 hour:29:1 hour:35:546561:36::37:0:38:0:39:50:46::47::40::27:AQcHBwEL#1bae6491cc87c72326abcbc0a7afaee139aa7088#f17c5a61f4ba1c7512081132459ddfaaa7c6f716', 200
+	return responseOutput, 200
 
 #@app.route('/database/getGJCommentHistory.php', methods=['GET', 'POST'])
 #async def comment_history():
