@@ -1,5 +1,4 @@
-from __main__ import app, request, cursor, random, hashes
-
+from __main__ import app, request, cursor, random, mainlib
 
 @app.route('/database/getGJLevels21.php', methods=['GET', 'POST'])
 async def get_levels():
@@ -25,57 +24,58 @@ async def get_levels():
 
 	#if filterStr != '': filtersString += f' AND levelName = "{filterStr}"  accountID = {filterStr}'
 
-	cursor.execute('SELECT * FROM levels WHERE unlisted = 0' + filtersString)
+	cursor.execute('SELECT * FROM levels WHERE unlisted = 0' + filtersString + ' ORDER BY RANDOM() LIMIT 1')
 	resultx = cursor.fetchall()
-	try:
-		result = random.choice(resultx)
-	except:
-		return '-1', 200
-	#print(result)
-	levelStr = ""
-	lvlID = result[6]
-	lvlName = result[7]
-	lvlVersion = result[9]
-	userID = result[3]
-	cursor.execute(f'SELECT userName FROM accounts WHERE accId = {userID}')
-	try:
-		username = cursor.fetchone()[0]
-	except:
-		userID = 2
-		username = "Invalid User"
-	# 8:10:9
-	# starDifficulty - Difficulty
-	# starStars - Stars
-	if result[30] == 1:
-		starAuto = 1
-	else:
-		starAuto = result[12]
-	starDifficulty = result[30] * 5
+	
+	tempLvlsList = []
 
-	downloads = 1
-	audioTrack = result[11]
-	likes = result[33]
-	starDemon = 0
-	starDemonDiff = 0
-	starStars = result[30]
-	starFeatured = result[31]
-	starEpic = result[32]
-	objects = result[17]
-	levelDesc = result[8]
-	levelLength = result[10]
-	original = result[14]
-	twoPlayer = result[15]
-	coins = result[18]
-	starCoins = 0
-	requestedStars = result[19]
-	isLDM = result[23]
-	songId = result[16]
-	levelStr = levelStr + f"1:{lvlID}:2:{lvlName}:5:{lvlVersion}:6:{userID}:8:10:9:{starDifficulty}:10:{downloads}:12:{audioTrack}:13:21:14:{likes}:17:{starDemon}:43:{starDemonDiff}:25:{starAuto}:18:{starStars}:19:{starFeatured}:42:{starEpic}:45:{objects}:3:{levelDesc}:15:{levelLength}:30:{original}:31:{twoPlayer}:37:{coins}:38:{starCoins}:39:{requestedStars}:46:1:47:2:40:{isLDM}:35:{songId}|"
-	userStr = f"{userID}:{username}:{userID}|"
-	songStr = "1~|~1~|~2~|~StereoMadness~|~3~|~1~~|~4~|~DragonFireCommunity~|~5~|~10~|~6~|~~|~10~|~github.com/matcool/pygdps/routes/levels/get_levels.mp3~|~7~|~~|~8~|~1|"
-	totalLvls = len(resultx)
-	offset = 0
-	hash = hashes.hash_levels(lvlID, starStars)
+	for result in resultx:
+		#print(result)
+		levelStr = ""
+		lvlID = result[6]
+		lvlName = result[7]
+		lvlVersion = result[9]
+		userID = result[3]
+		cursor.execute(f'SELECT userName FROM accounts WHERE accId = {userID}')
+		try:
+			username = cursor.fetchone()[0]
+		except:
+			userID = 2
+			username = "Invalid User"
+		# 8:10:9
+		# starDifficulty - Difficulty
+		# starStars - Stars
+		if result[30] == 1:
+			starAuto = 1
+		else:
+			starAuto = result[12]
+		starDifficulty = result[30] * 5
+
+		downloads = 1
+		audioTrack = result[11]
+		likes = result[33]
+		starDemon = 0
+		starDemonDiff = 0
+		starStars = result[30]
+		starFeatured = result[31]
+		starEpic = result[32]
+		objects = result[17]
+		levelDesc = result[8]
+		levelLength = result[10]
+		original = result[14]
+		twoPlayer = result[15]
+		coins = result[18]
+		starCoins = 0
+		requestedStars = result[19]
+		isLDM = result[23]
+		songId = result[16]
+		levelStr = levelStr + f"1:{lvlID}:2:{lvlName}:5:{lvlVersion}:6:{userID}:8:10:9:{starDifficulty}:10:{downloads}:12:{audioTrack}:13:21:14:{likes}:17:{starDemon}:43:{starDemonDiff}:25:{starAuto}:18:{starStars}:19:{starFeatured}:42:{starEpic}:45:{objects}:3:{levelDesc}:15:{levelLength}:30:{original}:31:{twoPlayer}:37:{coins}:38:{starCoins}:39:{requestedStars}:46:1:47:2:40:{isLDM}:35:{songId}|"
+		userStr = f"{userID}:{username}:{userID}|"
+		songStr = "1~|~1~|~2~|~StereoMadness~|~3~|~1~~|~4~|~DragonFireCommunity~|~5~|~10~|~6~|~~|~10~|~github.com/matcool/pygdps/routes/levels/get_levels.mp3~|~7~|~~|~8~|~1|"
+		totalLvls = len(resultx)
+		offset = 0
+		tempLvlsList.append({'levelid': lvlID, 'starstars': starStars, 'starcoins': coins})
+	hash = mainlib.GenMulti(tempLvlsList)
 	#hash = hashes.hash_levels2(result)
 	# levelStr = ""
 	# lvlID = 1
