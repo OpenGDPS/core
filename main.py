@@ -5,16 +5,16 @@ import sqlite3
 import random
 import datetime
 import time
+#import requests
+from typing import Dict
+import asyncio
+import timeago
 
 import util
 import hashes
 import formats
 import cryptx
-#import requests
-from typing import Dict
-
-import asyncio
-import timeago
+import mainlib
 
 dragoncoregd_logo = '''
 ██████╗ ██████╗  █████╗  ██████╗  ██████╗ ███╗   ██╗ ██████╗ ██████╗ ██████╗ ███████╗ ██████╗ ██████╗	 ██████╗ ██╗   ██╗
@@ -340,8 +340,9 @@ async def download_level():
 	extraString = result[24]
 	levelString = result[27]
 	lvlStr = f"1:{levelID}:2:{levelName}:3:{levelDescription}:4:{levelString}:5:{levelVersion}:6:{userID}:8:10:9:{starDifficulty}:10:{downloads}:11:1:12:{songId}:13:{gameVersion}:14:{likes}:17:{starDemon}:43:{starDemonDiff}:25:{starAuto}:18:{starStars}:19:{starFeatured}:42:{starEpic}:45:{objects}:15:{levelLength}:30:{original}:31:{twoPlayer}:28:{uploadDate}:29:{uploadDate}:35:{songId}:36:{extraString}:37:{coins}:38:{starCoins}:39:{requestedStars}:46:{wt}:47:{wt2}:48:{settingsString}:40:{isLDM}:27:0"
-	if extras == '1': lvlStr = lvlStr + f":26:{levelInfo}"
-	responseOutput = f"{lvlStr}#{hashes.hash_level(lvlStr)}#{hashes.hash_solo2(userString)}"
+	if extras == '1':
+		lvlStr = lvlStr + f":26:{levelInfo}"
+	responseOutput = f"{lvlStr}#{mainlib.Sha1(f'{lvlStr}xI25fpAapCQg')}#{mainlib.GenSolo(userString)}"
 	print(responseOutput)
 	return f'1:{levelID}:2:Test:3:QSB0ZXN0IGxldmVsIGZvciB0aGUgR0QgRG9jcyE=:4:H4sIAAAAAAAAC6WQwQ3DIAxFF3IlfxsIUU6ZIQP8AbJChy_GPSZqpF7-A4yfDOfhXcCiNMIqnVYrgYQl8rDwBTZCVbkQRI3oVHbiDU6F2jMF_lesl4q4kw2PJMbovxLBQxTpM3-I6q0oHmXjzx7N0240cu5w0UBNtESRkble8uSLHjh8nTubmYJZ2MvMrEITEN0gEJMxlLiMZ28frmj:5:1:6:3935672:8:0:9:0:10:1:12:0:13:21:14:0:17::43:0:25::18:0:19:0:42:0:45:1:15:0:30:55610687:31:0:28:1 hour:29:1 hour:35:546561:36::37:0:38:0:39:50:46::47::40::27:AQcHBwEL#1bae6491cc87c72326abcbc0a7afaee139aa7088#f17c5a61f4ba1c7512081132459ddfaaa7c6f716', 200
 	return responseOutput, 200
