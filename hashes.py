@@ -19,6 +19,15 @@ def hash_levels(id, stars, appendSecurity = True) -> str:
     else:
         return hashlib.sha1(bytes(data, 'utf-8')).hexdigest()
 
+def hash_levels2(levels) -> str:
+    """
+    Used in:
+        - getGJLevels21
+    """
+    # '{first digit of level id}{last digit of level id}{stars}{starCoins?? 0 works fine So}'
+    data = ''.join(f"{str(lvl['id'])[0]}{str(lvl['id'])[-1]}{lvl['stars']}0" for lvl in levels)
+    return hashlib.sha1(bytes(data + 'xI25fpAapCQg', 'utf-8')).hexdigest()
+
 def hash_mappack(id, stars, coins) -> str:
     """
     Used in:
