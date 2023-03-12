@@ -7,5 +7,10 @@ Geometry Dash server implementation in Python 3
 
 :warning: | Requires refactoring, need to rewrite to FastAPI, change SQLite to something better
 
+# TODO
+ - Refactoring
+ - Strengthening security
+ - Code acceleration
+
 # Installation
 Soon...
