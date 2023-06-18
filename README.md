@@ -1,10 +1,7 @@
 ![изображение](https://user-images.githubusercontent.com/64083584/224486780-fcbb3203-e1e1-4b00-a866-0c3f4e0c1ce5.png)
 
-# EOL
-
-RU: Я потерял интерес к проекту, у меня сильное выгорание, так что его переписывать на FastAPI не буду
-
-EN: I lost interest in the project, I have a lot of burnout, so I will not rewrite it on FastAPI
+# The project is alive again
+Yes Yes! New commits coming soon! 
 
 # DragoncoreGD v2
 Geometry Dash server implementation in Python 3
