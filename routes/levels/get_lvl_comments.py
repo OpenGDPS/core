@@ -32,7 +32,7 @@ async def get_comments_level():
 				color_2 = cursor.fetchone()[0]
 
 				commentsAppend = f"~11~0:1~{post[2]}~7~1~9~{icon_cube}~10~{color_1}~11~{color_2}~14~0~15~0~16~{accountId}"
-				comments = f"2~{post[3]}~3~{accountId}~4~{post[4]}~5~0~7~{post[5]}~9~{uploadDate}~6~{post[7]}~10~{percentCompleted}{commentsAppend}|" + comments
+				comments = f"2~{post[3]}~3~{accountId}~4~{post[4]}~5~0~7~{post[5]}~9~{uploadDate}~6~{post[7]}~10~{post[8]}{commentsAppend}|" + comments
 		#print(comments)
 		print(comments)
 		return comments + f"#0:0:10", 200

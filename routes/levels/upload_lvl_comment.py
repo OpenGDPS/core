@@ -6,8 +6,13 @@ async def upload_comment_level():
 	accountID = request.form['accountID']
 	userName = request.form['userName']
 	comment = request.form['comment']
+	try:
+		percent = request.form['percent']
+	except:
+		percent = 0
+
 	date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 	commentID = random.randint(1, 2147483647)
-	cursor.execute(f'INSERT INTO level_comments VALUES({levelID}, {accountID}, "{userName}", "{comment}", 0, 0, "{date}", {commentID})')
+	cursor.execute(f'INSERT INTO level_comments VALUES({levelID}, {accountID}, "{userName}", "{comment}", 0, 0, "{date}", {commentID}, {percent})')
 	conn.commit()
 	return '1', 200
