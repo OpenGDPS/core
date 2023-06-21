@@ -4,6 +4,8 @@ from __main__ import app, cursor, conn, request
 async def update_acc_settings():
 	#print(request.form)
 	#print(request.form)
+	if request.form['secret'] != 'Wmfv3899gc9': return "-1", 400
+
 	accountID = request.form['accountID']
 	youtube_url = request.form['yt']
 	twitter_url = request.form['twitter']
