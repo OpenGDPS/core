@@ -2,7 +2,6 @@ from __main__ import app, request, cursor, random, mainlib
 
 @app.route('/database/getGJLevels21.php', methods=['GET', 'POST'])
 async def get_levels():
-	print(request.form)
 	filtersString = ''
 
 	try:
@@ -10,12 +9,14 @@ async def get_levels():
 		filterFeatured = request.form['featured']
 		filterEpic = request.form['epic']
 		filterTwoPlayer = request.form['twoPlayer']
+		filterLen = request.form['len']
 		#filterStr = request.form['str']
 
 		if filterCoins == '1': filtersString += ' AND coins >= 1'
 		if filterFeatured == '1': filtersString += ' AND isFeatured = 1'
 		if filterEpic == '1': filtersString += ' AND isEpic = 1'
 		if filterTwoPlayer == '1': filtersString += ' AND twoPlayer = 1'
+		if filterLen != '-': filtersString += f' AND levelLength = {filterLen}'
 
 		filterSongID = request.form['song']
 		filtersString += f' AND songID = {filterSongID}'
@@ -26,8 +27,15 @@ async def get_levels():
 
 	cursor.execute('SELECT * FROM levels WHERE unlisted = 0' + filtersString + ' ORDER BY RANDOM() LIMIT 1')
 	resultx = cursor.fetchall()
-	
+
+	totalLvls = len(resultx)
+	offset = 0
+
 	tempLvlsList = []
+
+	levelStr = ""
+	userStr = ""
+	songStr = ""
 
 	for result in resultx:
 		#print(result)
@@ -70,10 +78,8 @@ async def get_levels():
 		isLDM = result[23]
 		songId = result[16]
 		levelStr = levelStr + f"1:{lvlID}:2:{lvlName}:5:{lvlVersion}:6:{userID}:8:10:9:{starDifficulty}:10:{downloads}:12:{audioTrack}:13:21:14:{likes}:17:{starDemon}:43:{starDemonDiff}:25:{starAuto}:18:{starStars}:19:{starFeatured}:42:{starEpic}:45:{objects}:3:{levelDesc}:15:{levelLength}:30:{original}:31:{twoPlayer}:37:{coins}:38:{starCoins}:39:{requestedStars}:46:1:47:2:40:{isLDM}:35:{songId}|"
-		userStr = f"{userID}:{username}:{userID}|"
-		songStr = "1~|~1~|~2~|~StereoMadness~|~3~|~1~~|~4~|~DragonFireCommunity~|~5~|~10~|~6~|~~|~10~|~github.com/matcool/pygdps/routes/levels/get_levels.mp3~|~7~|~~|~8~|~1|"
-		totalLvls = len(resultx)
-		offset = 0
+		userStr = userStr + f"{userID}:{username}:{userID}|"
+		songStr = songStr + "1~|~1~|~2~|~StereoMadness~|~3~|~1~~|~4~|~DragonFireCommunity~|~5~|~10~|~6~|~~|~10~|~github.com/matcool/pygdps/routes/levels/get_levels.mp3~|~7~|~~|~8~|~1|"
 		tempLvlsList.append({'levelid': lvlID, 'starstars': starStars, 'starcoins': coins})
 	hash = mainlib.GenMulti(tempLvlsList)
 	#hash = hashes.hash_levels2(result)
