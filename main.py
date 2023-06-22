@@ -3,7 +3,7 @@ import os
 import sqlite3
 import random
 import datetime
-#import requests
+import requests
 from typing import Dict
 import base64
 import timeago
@@ -152,12 +152,13 @@ async def upload_level():
 	levelString = request.form['levelString']
 	levelInfo = request.form['levelInfo']
 	secret = request.form['secret']
-	cursor.execute(f"INSERT INTO levels (gameVersion, binaryVersion, gdw, accountID, gjp, userName, levelID, levelName, levelDesc, levelVersion, levelLength, audioTrack, auto, password, original, twoPlayer, songID, objects, coins, requestedStars, unlisted, wt, wt2, ldm, extraString, seed, seed2, levelString, levelInfo, secret, stars, isFeatured, isEpic, likes) VALUES ({gameVersion}, {binaryVersion}, {gdw}, {accountID}, '{gjp}', '{userName}', {levelID}, '{levelName}', '{levelDesc}', {levelVersion}, {levelLength}, {audioTrack}, {auto}, {password}, {original}, {twoPlayer}, {songID}, {objects}, {coins}, {requestedStars}, {unlisted}, {wt}, {wt2}, {ldm}, '{extraString}', '{seed}', '{seed2}', '{levelString}', '{levelInfo}', '{secret}', 0, 0, 0, 0)")
+	uploadDate = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+	cursor.execute(f"INSERT INTO levels (gameVersion, binaryVersion, gdw, accountID, gjp, userName, levelID, levelName, levelDesc, levelVersion, levelLength, audioTrack, auto, password, original, twoPlayer, songID, objects, coins, requestedStars, unlisted, wt, wt2, ldm, extraString, seed, seed2, levelString, levelInfo, secret, stars, isFeatured, isEpic, likes, downloads, uploadDate) VALUES ({gameVersion}, {binaryVersion}, {gdw}, {accountID}, '{gjp}', '{userName}', {levelID}, '{levelName}', '{levelDesc}', {levelVersion}, {levelLength}, {audioTrack}, {auto}, {password}, {original}, {twoPlayer}, {songID}, {objects}, {coins}, {requestedStars}, {unlisted}, {wt}, {wt2}, {ldm}, '{extraString}', '{seed}', '{seed2}', '{levelString}', '{levelInfo}', '{secret}', 0, 0, 0, 0, 0, '{uploadDate}')")
 	conn.commit()
 	return str(levelID), 200
 
 @app.route('/database/getGJDailyLevel.php', methods=['GET', 'POST'])
-async def gjfskngfdhgoif():
+async def get_daily_level():
 	cursor.execute(f"SELECT setting FROM config WHERE setting = 'dailyLevelId'")
 	dailyLevelId = cursor.fetchone()[0]
 	#dailyLevelId = 1
@@ -176,12 +177,20 @@ async def get_gauntlets():
 
 @app.route('/database/getGJMapPacks21.php', methods=['GET', 'POST'])
 async def get_mappacks():
+	strout = ""
+	hashesx = ""
+	#for x in range(1):
 	id = "1"
 	stars = "2"
 	coins = "3"
 	difficulty = 2
-	str1 = f"1:1:2:DragoncoreGD v2!:3:5,8,4,3,2:4:{stars}:5:{coins}:6:{difficulty}:7:245, 66, 66:8:255,255,255|"
-	return f"{str1}#1:0:10#{hashes.hash_mappack(id, stars, coins)}"
+	levels = "5,8,4,3,2"
+	rgb = "245, 66, 66"
+	rgb2 = "255,255,255"
+	strout += f"1:1:2:DragoncoreGD v1:3:{levels}:4:{stars}:5:{coins}:6:{difficulty}:7:{rgb}:8:{rgb2}|"
+	hashesx += hashes.hash_mappack(id, stars, coins)
+	#hashesx = hashes.hash_solo2(hashesx)
+	return f"{strout}#1:0:10#{hashesx}"
 
 @app.route('/database/suggestGJStars20.php', methods=['GET', 'POST'])
 async def suggest_stars():
@@ -297,11 +306,42 @@ def json_to_robtop(dictionary: dict):
 @app.route('/database/downloadGJLevel21.php', methods=['GET', 'POST'])
 @app.route('/database/downloadGJLevel22.php', methods=['GET', 'POST'])
 async def download_level():
-	print(request.form)
+	# gd & gdps bridge
 	levelID = request.form['levelID'].replace('-', '')
 	extras = request.form['extras']
-	print(levelID)
-	print('DOWNLOAD LEVEL: Experimental feature')
+	# print(levelID)
+	# print('DOWNLOAD LEVEL: Experimental feature')
+
+	# with this code we are getting the level Test by DevExit
+	# levelID: 62687277
+	data = {
+		"levelID": levelID,      # level ID
+		"secret": "Wmfd2893gb7",  # common secret
+		"gameVersion": request.form['gameVersion'],
+		"binaryVersion": request.form['binaryVersion'],
+		"gdw": request.form['gdw'],
+		"extras": request.form['extras'],
+		"rs": request.form['rs'],
+		"chk": request.form['chk'],
+		"udid": request.form['udid'],
+		"uuid": request.form['uuid'],
+		"gjp": request.form['gjp']
+	}
+
+	response = requests.post(
+		"http://www.boomlings.com/database/downloadGJLevel22.php",
+		data=data,
+		headers={
+			"User-Agent": "",
+			#"Content-Type": "application/x-www-form-urlencoded"
+		}
+	)
+
+	resp = response.text
+	print(resp)
+
+	return resp, 200
+
 	cursor.execute(f'SELECT * FROM levels WHERE levelID = {levelID}')
 	result = cursor.fetchone()
 
@@ -319,6 +359,7 @@ async def download_level():
 	audioTrack = result[11]
 	userID = result[3]
 	password = result[13]
+	#password = mainlib.CharXor(cryptx.base64_encode(str(result[13])), "26364")
 	if result[30] == 1:
 		starAuto = 1
 	else:
@@ -374,6 +415,7 @@ async def download_level():
         13: 21,
         14: likes,
         15: levelLength,
+		16: likes,
         17: starDemon,
         18: starStars,
         19: starFeatured,
@@ -389,8 +431,10 @@ async def download_level():
         38: starCoins,
         39: requestedStars,
         40: isLDM,
+		41: 0,
         42: starEpic,
         43: starDemonDiff,
+		44: 0,
         45: objects,
         46: 1,
         47: 2,
@@ -399,10 +443,10 @@ async def download_level():
 	if extras == '1':
 		lvlStr = lvlStr + f":26:{levelInfo}"
 	
-	someString = f"{userID},{starStars},{starDemon},{levelID},{starCoins},{starFeatured},{password},0"
-	responseOutput = f"{lvlStr}#{mainlib.GenSolo(lvlStr)}#{mainlib.GenSolo2(userString)}#{userString}"
-	if (request.form['binaryVersion'] == 30):
-		responseOutput += f"#{someString}"
+	someString = f"{userID},{starStars},{starDemon},{levelID},{starCoins},{starFeatured},{password},{0}"
+	responseOutput = f"{lvlStr}#{mainlib.GenSolo(lvlStr)}#{mainlib.GenSolo2(someString)}#{someString}"
+	# if (request.form['binaryVersion'] == 30):
+	# 	responseOutput += f"#{someString}"
 	print(responseOutput)
 	return responseOutput, 200
 
