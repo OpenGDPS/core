@@ -3,10 +3,6 @@
 # OpenGDPS
 Geometry Dash server implementation in Python 3
 
-:warning: | The server is still in beta testing, and is not intended to be used publicly
-
-:warning: | Requires refactoring, need to rewrite to FastAPI, change SQLite to something better
-
 # TODO
  - Refactoring
  - Strengthening security
