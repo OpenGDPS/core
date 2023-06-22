@@ -1,22 +1,18 @@
-import flask
 from flask import Flask, request, send_from_directory
 import os
 import sqlite3
 import random
 import datetime
-import time
 #import requests
 from typing import Dict
-import asyncio
+import base64
 import timeago
 
-import util
 import hashes
-import formats
 import cryptx
 import mainlib
 
-dragoncoregd_logo = '''
+opengdps_logo = '''
    ____                    _____ _____  _____   _____ 
   / __ \                  / ____|  __ \|  __ \ / ____|
  | |  | |_ __   ___ _ __ | |  __| |  | | |__) | (___  
@@ -27,7 +23,7 @@ dragoncoregd_logo = '''
         |_|                                           
 '''
 
-print(dragoncoregd_logo)
+print(opengdps_logo)
 print()
 print("Loading...")
 
@@ -107,6 +103,10 @@ async def err(e):
 	#print(f'Unhandled request! {request.path} {json.dumps(request.values.to_dict())}')
 	return '1', 404
 
+@app.before_request
+async def before_req():
+	print(request.form)
+
 # def convert_bytes(size):
 #     """ Convert bytes to KB, or MB or GB"""
 #     for x in ['bytes', 'KB', 'MB', 'GB', 'TB']:
@@ -123,7 +123,8 @@ async def upload_level():
 	accountID = request.form['accountID']
 	gjp = request.form['gjp']
 	userName = request.form['userName']
-	levelID = request.form['levelID']
+	levelID = random.randint(1, 2147483647)
+	#levelID = request.form['levelID']
 	for char in charInvalid:
 		levelName = request.form['levelName'].replace(char, '')
 	if len(levelName) > 20:
@@ -153,7 +154,7 @@ async def upload_level():
 	secret = request.form['secret']
 	cursor.execute(f"INSERT INTO levels (gameVersion, binaryVersion, gdw, accountID, gjp, userName, levelID, levelName, levelDesc, levelVersion, levelLength, audioTrack, auto, password, original, twoPlayer, songID, objects, coins, requestedStars, unlisted, wt, wt2, ldm, extraString, seed, seed2, levelString, levelInfo, secret, stars, isFeatured, isEpic, likes) VALUES ({gameVersion}, {binaryVersion}, {gdw}, {accountID}, '{gjp}', '{userName}', {levelID}, '{levelName}', '{levelDesc}', {levelVersion}, {levelLength}, {audioTrack}, {auto}, {password}, {original}, {twoPlayer}, {songID}, {objects}, {coins}, {requestedStars}, {unlisted}, {wt}, {wt2}, {ldm}, '{extraString}', '{seed}', '{seed2}', '{levelString}', '{levelInfo}', '{secret}', 0, 0, 0, 0)")
 	conn.commit()
-	return levelID, 200
+	return str(levelID), 200
 
 @app.route('/database/getGJDailyLevel.php', methods=['GET', 'POST'])
 async def gjfskngfdhgoif():
@@ -197,10 +198,10 @@ async def suggest_stars():
 # @app.route('/database/downloadGJLevel20.php', methods=['GET', 'POST'])
 # @app.route('/database/downloadGJLevel21.php', methods=['GET', 'POST'])
 # @app.route('/database/downloadGJLevel22.php', methods=['GET', 'POST'])
-# async def download_level():
+# async def download_levelx():
 # 	levelID = request.form['levelID'].replace('-', '')
 # 	print(levelID)
-# 	return '-1', 501
+# 	#return '-1', 501
 
 # 	cursor.execute(f'SELECT * FROM levels WHERE levelID = {levelID}')
 # 	result = cursor.fetchone()
@@ -284,6 +285,12 @@ async def suggest_stars():
 # async def restore_items():
 #     return 'not implemented', 501
 
+def json_to_robtop(dictionary: dict):
+    result = ""
+    for key, value in dictionary.items():
+        result += f"{key}:{value}:"
+    return result[:-1]
+
 @app.route('/database/downloadGJLevel.php', methods=['GET', 'POST'])
 @app.route('/database/downloadGJLevel19.php', methods=['GET', 'POST'])
 @app.route('/database/downloadGJLevel20.php', methods=['GET', 'POST'])
@@ -298,10 +305,20 @@ async def download_level():
 	cursor.execute(f'SELECT * FROM levels WHERE levelID = {levelID}')
 	result = cursor.fetchone()
 
+	# for testing
+	# print(json_to_robtop(
+	# 	{
+	# 		1: "gdg",
+	# 		2: 3
+	# 	}
+	# ))
+
 	levelName = result[7]
 	levelDescription = result[8]
 	levelVersion = result[9]
+	audioTrack = result[11]
 	userID = result[3]
+	password = result[13]
 	if result[30] == 1:
 		starAuto = 1
 	else:
@@ -310,7 +327,7 @@ async def download_level():
 	likes = result[33]
 	gameVersion = result[0]
 	downloads = 1
-	songId = result[16]
+	songID = result[16]
 	coins = result[18]
 	starCoins = 0
 	requestedStars = result[19]
@@ -337,34 +354,136 @@ async def download_level():
 
 	uploadDate = "09-01-2023"
 	settingsString = "1"
-	#userString = f"{userID}:{username}:{userID}"
-	userString = f"{userID},10,0,{levelID},{starCoins},{starFeatured},0,0"
+	userString = f"{userID}:{username}:{userID}"
+	#userString = f"{userID},10,0,{levelID},{starCoins},{starFeatured},0,0"
 	extraString = result[24]
 	levelString = result[27]
-	print(responseOutput)
-	responseOutput = responseOutput + f'1:{levelID}:2:{levelName}:3:{levelDescription}:4:{levelString}:5:{levelVersion}:6:{userID}:8:10:9:{starDifficulty}:10:{downloads}:11:1:12:{audioTrack}:13:{gameVersion}:14:{likes}:17:{starDemon}:43:{starDemonDiff}:25:{starAuto}:18:{starStars}:19:{starFeatured}:42:{starEpic}:45:{objects}:15:{levelLength}:30:{original}:31:{twoPlayer}:28:{uploadDate}:29:{uploadDate}:35:{songID}:36:{extraString}:37:{coins}:38:{starCoins}:39:{requestedStars}:46:WT:47:WT2:48:settingsString:40:{isLDM}:27:{password}', 200
+
+	lvlStr = json_to_robtop({
+        1: levelID,
+        2: levelName,
+        3: levelDescription,
+        4: levelString,
+        5: levelVersion,
+        6: userID,
+        8: 10,
+        9: starDifficulty,
+        10: downloads,
+        11: 1,
+        12: audioTrack,
+        13: 21,
+        14: likes,
+        15: levelLength,
+        17: starDemon,
+        18: starStars,
+        19: starFeatured,
+        25: starAuto,
+        27: password,
+        28: uploadDate,
+        29: uploadDate, # updateDate,
+        30: original,
+        31: twoPlayer,
+        35: songID,
+        36: extraString,
+        37: coins,
+        38: starCoins,
+        39: requestedStars,
+        40: isLDM,
+        42: starEpic,
+        43: starDemonDiff,
+        45: objects,
+        46: 1,
+        47: 2,
+        48: 1,
+    })
 	if extras == '1':
-		responseOutput = responseOutput + f":26:{levelInfo}"
-	responseOutput = f"{lvlStr}#{mainlib.Sha1(f'{lvlStr}xI25fpAapCQg')}#{mainlib.GenSolo(userString)}"
+		lvlStr = lvlStr + f":26:{levelInfo}"
+	
+	someString = f"{userID},{starStars},{starDemon},{levelID},{starCoins},{starFeatured},{password},0"
+	responseOutput = f"{lvlStr}#{mainlib.GenSolo(lvlStr)}#{mainlib.GenSolo2(userString)}#{userString}"
+	if (request.form['binaryVersion'] == 30):
+		responseOutput += f"#{someString}"
 	print(responseOutput)
 	return responseOutput, 200
 
-#@app.route('/database/getGJCommentHistory.php', methods=['GET', 'POST'])
-#async def comment_history():
-#    # #1:0:1
-#    a = "~1~2147~2~SGVsbG8hIFRoaXMgaXMgbmV3IGNvbW1lbnQgdGVzdGluZyE=~3~469475~4~2000~5~0~7~0~9~TESTCOMMENT~6~1~10~100"
-#    return a + "~11~2$252,119,3:1~dragonfire~7~1~9~3~10~3~11~4~14~0~15~No~16~1#1:0:1"
+@app.route('/database/getGJCommentHistory.php', methods=['GET', 'POST'])
+async def comment_history():
+	#page = int(request.form['page'])
+	now = datetime.datetime.now()
+
+	userID = request.form['userID']
+	cursor.execute(f"SELECT * FROM level_comments WHERE authorID = {userID}")
+	posts = cursor.fetchall()
+	if posts is None:
+		return '-1'
+	else:
+		comments = ""
+		for post in posts:
+			userID = request.form['userID']
+			cursor.execute(f"SELECT * FROM level_comments WHERE authorID = {userID}")
+			comments_in_post = cursor.fetchall()
+			if comments_in_post is None:
+				continue
+			else:
+				accountId = post[1]
+				cursor.execute(f"SELECT icon_cube FROM accounts WHERE accId = '{accountId}'")
+				icon_cube = cursor.fetchone()[0]
+				#print(f'Comment: {post[1]}, User ID: {post[0]}, Likes: {post[3]}, uploadDate: {post[5]}, Post ID: {post[2]}')
+				uploadDate = timeago.format(post[6], now).replace(' ago', '')
+
+				cursor.execute(f"SELECT color_1 FROM accounts WHERE accId = '{accountId}'")
+				color_1 = cursor.fetchone()[0]
+
+				cursor.execute(f"SELECT color_2 FROM accounts WHERE accId = '{accountId}'")
+				color_2 = cursor.fetchone()[0]
+
+				commentsAppend = f"~11~0:1~{post[2]}~7~1~9~{icon_cube}~10~{color_1}~11~{color_2}~14~0~15~0~16~{accountId}"
+				comments = f"1~{post[0]}~2~{post[3]}~3~{accountId}~4~{post[4]}~5~0~7~{post[5]}~9~{uploadDate}~6~{post[7]}~10~{post[8]}{commentsAppend}|" + comments
+		#print(comments)
+		print(comments)
+		return comments + f"#0:0:10", 200
+
+
+from itertools import cycle
+
+DEFAULT_ENCODING = "utf-8"
+DEFAULT_ERRORS = "strict"
+
+def cyclic_xor(data: bytes, key: bytes) -> bytes:
+    return bytes(byte ^ key_byte for byte, key_byte in zip(data, cycle(key)))
+
+def cyclic_xor_string(
+    string: str, key: str, encoding: str = DEFAULT_ENCODING, errors: str = DEFAULT_ERRORS
+) -> str:
+    result = cyclic_xor(string.encode(encoding, errors), key.encode(encoding, errors))
+
+    return result.decode(encoding, errors)
 
 # @app.route('/database/getGJRewards.php', methods=['GET', 'POST'])
 # async def get_rewards():
 # 	chk = request.form['chk']
 # 	udid = request.form['udid']
-# 	a = cryptx.base64_encode(f"1:1:{chk}:{udid}:1:10:10:20:10:10:15:1").replace('/','_').replace('+','-')
-# 	hash = hashes.hash_rewards(a)
-# 	return f"SaKuJ{a}|{hash}"
+# 	accountID = request.form['accountID']
+
+# 	chk = cyclic_xor_string(cryptx.base64_encode(chk), '59182')
+
+# 	chestOrbs = random.randint(1, 2000)
+# 	chestDiamonds = random.randint(1, 2000)
+# 	chestShards = random.randint(1, 2000)
+# 	chestKeys = random.randint(1, 3)
+
+# 	chestContent = f"{chestOrbs},{chestDiamonds},{chestShards},{chestKeys}"
+
+# 	chest1Content = chestContent
+# 	chest2Content = chestContent
+
+# 	rewardType = 1
+# 	rewards = cryptx.base64_encode(f"1:{accountID}:{chk}:{udid}:{accountID}:0:{chest1Content}:50:0:{chest2Content}:50:{rewardType}").replace('/','_').replace('+','-')
+# 	hash = hashes.hash_rewards(rewards)
+# 	return f"SaKuJ{rewards}|{hash}"
 
 app.run(
-	# host = "0.0.0.0",
+	host = "0.0.0.0",
 	# port = 80,
 	debug = True
 )
