@@ -1,7 +1,45 @@
-from __main__ import app, request, cursor, random, mainlib
+from __main__ import app, request, cursor, requests, mainlib
 
 @app.route('/database/getGJLevels21.php', methods=['GET', 'POST'])
 async def get_levels():
+	# gd & gdps bridge
+	# print(levelID)
+	# print('DOWNLOAD LEVEL: Experimental feature')
+
+	# with this code we are getting the level Test by DevExit
+	# levelID: 62687277
+	data = {
+		"secret": "Wmfd2893gb7",  # common secret
+		"type": request.form['type'],
+		"str": request.form['str'],
+		"len": request.form['len'],
+		"page": request.form['page'],
+		"total": request.form['total'],
+		"uncompleted": request.form['uncompleted'],
+		"onlyCompleted": request.form['onlyCompleted'],
+		"featured": request.form['featured'],
+		"original": request.form['original'],
+		"twoPlayer": request.form['twoPlayer'],
+		"coins": request.form['coins'],
+		"epic": request.form['epic'],
+		"secret": request.form['secret'],
+	}
+
+	response = requests.post(
+		"http://www.boomlings.com/database/getGJLevels21.php",
+		data=data,
+		headers={
+			"User-Agent": "",
+			#"Content-Type": "application/x-www-form-urlencoded"
+		}
+	)
+
+	resp = response.text
+	print(resp)
+
+	return resp, 200
+
+	return '', 200
 	filtersString = ''
 
 	try:
@@ -23,9 +61,19 @@ async def get_levels():
 	except:
 		pass
 
+	try:
+		filterType = request.form['type']
+		if filterType == "1": filtersString += " ORDER BY downloads DESC"
+		if filterType == "2": filtersString += " ORDER BY likes DESC"
+		if filterType == "4": filtersString += " ORDER BY uploadDate DESC"
+	except:
+		pass
+
 	#if filterStr != '': filtersString += f' AND levelName = "{filterStr}"  accountID = {filterStr}'
 
-	cursor.execute('SELECT * FROM levels WHERE unlisted = 0' + filtersString + ' ORDER BY RANDOM() LIMIT 1')
+	print(filtersString)
+
+	cursor.execute('SELECT * FROM levels WHERE unlisted = 0' + filtersString + ' LIMIT 1')
 	resultx = cursor.fetchall()
 
 	totalLvls = len(resultx)
@@ -59,7 +107,7 @@ async def get_levels():
 			starAuto = result[12]
 		starDifficulty = result[30] * 5
 
-		downloads = 1
+		downloads = result[34]
 		audioTrack = result[11]
 		likes = result[33]
 		starDemon = 0
