@@ -8,6 +8,10 @@ Geometry Dash server implementation in Python 3
 
 # Installation
  - 1.Download source code
- - 2.Install libs
+ - 2.Install libs (``pip install -r requirements.txt``)
  - 3.Run main.py
  - 4.Your server is ready!
+
+# Hosting
+## Supported
+ - Replit
