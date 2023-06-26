@@ -1,5 +1,3 @@
-![изображение](https://user-images.githubusercontent.com/64083584/224486780-fcbb3203-e1e1-4b00-a866-0c3f4e0c1ce5.png)
-
 # OpenGDPS
 Geometry Dash server implementation in Python 3
 
