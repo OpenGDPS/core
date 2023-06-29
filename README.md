@@ -1,3 +1,4 @@
+# ⚠ | Deprecated (again): The core is obsolete again. Soon it will be completely rewritten, not in Python
 # OpenGDPS
 Geometry Dash server implementation in Python 3
 
