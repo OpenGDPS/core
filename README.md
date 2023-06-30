@@ -1,6 +1,6 @@
 # ⚠ | Deprecated (again): The core is obsolete again. Soon it will be completely rewritten, not in Python
 # OpenGDPS
-Geometry Dash server implementation in Python 3
+Geometry Dash server implementation in Python 3 (with shit code)
 
 # TODO
  - Refactoring
