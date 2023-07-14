@@ -7,6 +7,7 @@ Geometry Dash server implementation in Python 3 (with shit code)
  - Strengthening security
  - Code acceleration
  - downloadGJLevel.php and downloadGJLevelXX.php
+ - Older versions (currently, only 2.11 is supported)
 
 # Installation
  - 1.Download source code
