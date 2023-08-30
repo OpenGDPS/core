@@ -1,4 +1,4 @@
-# ⚠ | Deprecated (again): The core is obsolete again. Soon it will be completely rewritten, not in Python
+# ⚠ | Deprecated: Use [this](https://github.com/OpenGDPS/new-core)
 # OpenGDPS
 Geometry Dash server implementation in Python 3 (with shit code)
 
